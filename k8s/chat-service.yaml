@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+  labels:
+    app: chat-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: your-registry/chat-service:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: redis-url
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: db-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: jwt-secret
+            - name: PUSH_SERVICE_URL
+              value: "http://message-service:6000/push"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+spec:
+  selector:
+    app: chat-service
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chat-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: chat-service
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

@@ -1,0 +1,12 @@
+{
+  "name": "chat-scripts",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node test-integration.js",
+    "load": "node load-test.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "ws": "^8.16.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "chat-service",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.0",
+    "ws": "^8.16.0"
+  }
+}
